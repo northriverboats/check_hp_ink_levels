@@ -38,7 +38,9 @@ License:
 
 import sys
 import os
+from urllib.request import urlopen
 import click
+from bs4 import BeautifulSoup
 from dotenv import load_dotenv
 
 def resource_path(relative_path):
@@ -51,6 +53,32 @@ def resource_path(relative_path):
     return os.path.join(base_path, relative_path)
 
 
+def query_plotter():
+    """Read plotter status page"""
+    url = os.getenv('URL')
+    with urlopen(url) as page:
+        html_bytes = page.read()
+        html = html_bytes.decode("utf-8")
+
+    soup = BeautifulSoup(html, "html.parser")
+
+    # find the correct table
+    table = soup.find('caption', text = 'Cartridges').find_parent('table')
+    headers = ['letter', 'cartridge', 'status', 'level', 'capacity',
+               'warranty', 'part']
+
+    # build list of dictionary rows
+    table_data = []
+    for row in table.findAll("tr")[1:]:
+        t_row = {}
+        for t_d, t_h in zip(row.find_all("td"), headers):
+            t_row[t_h] = t_d.text.replace('\n', '').strip()
+        table_data.append(t_row)
+
+    # compute cartridges that are low on ink
+    return [row for row in table_data if row['level'][:-2] < '11']
+
+
 # pylint: disable=no-value-for-parameter
 @click.command()
 @click.option('--debug', '-d', is_flag=True,
@@ -61,7 +89,7 @@ def main(debug):
         print('boo')
     # load environmental variables
     load_dotenv(dotenv_path=resource_path(".env"))
-    # URL = os.getenv('URL')
+    print(query_plotter())
 
 if __name__ == "__main__":
     main()
