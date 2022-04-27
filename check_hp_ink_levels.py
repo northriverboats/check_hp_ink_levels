@@ -35,7 +35,20 @@ License:
     OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
     OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 """
+
+import sys
+import os
 import click
+from dotenv import load_dotenv
+
+def resource_path(relative_path):
+    """ Get absolute path to resource, works for dev and for PyInstaller """
+    try:
+        base_path = sys._MEIPASS  # pylint: disable=protected-access
+    except AttributeError:
+        base_path = os.path.abspath(".")
+
+    return os.path.join(base_path, relative_path)
 
 
 # pylint: disable=no-value-for-parameter
@@ -46,6 +59,11 @@ def main(debug):
     """check ink levels and email results"""
     if debug:
         print('boo')
+    # load environmental variables
+    load_dotenv(dotenv_path=resource_path(".env"))
+    # URL = os.getenv('URL')
 
 if __name__ == "__main__":
     main()
+
+# vim: ts=2 sw=2 et
