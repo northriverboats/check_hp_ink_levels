@@ -56,6 +56,7 @@ def resource_path(relative_path):
 def query_plotter():
     """Read plotter status page"""
     url = os.getenv('URL')
+    threshold = os.getenv('THRESHOLD')
     with urlopen(url) as page:
         html_bytes = page.read()
         html = html_bytes.decode("utf-8")
@@ -76,7 +77,7 @@ def query_plotter():
         table_data.append(t_row)
 
     # compute cartridges that are low on ink
-    return [row for row in table_data if row['level'][:-2] < '11']
+    return [row for row in table_data if row['level'][:-2] <= threshold ]
 
 
 # pylint: disable=no-value-for-parameter
