@@ -55,18 +55,19 @@ def resource_path(relative_path):
     return os.path.join(base_path, relative_path)
 
 def mail_results(subject, body):
-    mFrom = os.getenv('MAIL_FROM')
-    mTo = os.getenv('MAIL_TO')
-    m = Email(os.getenv('MAIL_SERVER'))
-    m.setFrom(mFrom)
-    for email in mTo.split(','):
-        m.addRecipient(email)
-    m.addCC(os.getenv('MAIL_FROM'))
+    """send actual emails"""
+    m_from = os.getenv('MAIL_FROM')
+    m_to = os.getenv('MAIL_TO')
+    mail = Email(os.getenv('MAIL_SERVER'))
+    mail.setFrom(m_from)
+    for email in m_to.split(','):
+        mail.addRecipient(email)
+    mail.addCC(os.getenv('MAIL_FROM'))
 
-    m.setSubject(subject)
-    m.setTextBody("You should not see this text in a MIME aware reader")
-    m.setHtmlBody(body)
-    m.send()
+    mail.setSubject(subject)
+    mail.setTextBody("You should not see this text in a MIME aware reader")
+    mail.setHtmlBody(body)
+    mail.send()
 
 def email_admins(low, status):
     """eamil admins about cartridge status"""
@@ -80,13 +81,24 @@ def email_admins(low, status):
     """
     mail_results(subject, body)
 
+def email_status(low, status):  # pylint: disable=unused-argument
+    """eamil admins about cartridge status"""
+    subject = "HP Z5200 Plotter Ink Cartridge Status Report"
+    body = f"""
+        <p>These are the overall cartridge levels</p>
+        <pre>{status}</pre>
+				<p>For more details please click <a href="http://10.10.200.130/">here</a>.</p>
+    """
+    mail_results(subject, body)
+
+
 
 def format_list(cartridges):
     """format cartridge list"""
 
     text  = ""
     for row in cartridges:
-        line = (f"{row['cartridge']:20}  "
+        line = (f"    {row['cartridge']:20}  "
                 f"{'(' + row['letter'] + ')':4}  "
                 f"{row['part']}  "
                 f"{row['level']:>5}  "
@@ -132,25 +144,23 @@ def query_plotter():
 @click.command()
 @click.option('--debug', '-d', is_flag=True,
     help='show debug output do not email')
-def main(debug):
+@click.option('--status', '-s', is_flag=True,
+    help='just print/show status')
+def main(debug, status):
     """check ink levels and email results"""
 
     # load environmental variables
     load_dotenv(dotenv_path=resource_path(".env"))
-    low, status = query_plotter()
+    low, status_levels = query_plotter()
     if debug:
         print("Cartridge Status")
-        print(status)
-    if low and not debug:
-        print("email cartridge list")
-    elif low and debug:
-        print("Cartridges that need to be reordered:")
-        print(low)
-    elif not low and not debug:
-        pass
-    elif not low and debug:
-        print("No cartridges need to be reordered")
-    email_admins(low, status)
+        print(status_levels)
+        return
+    if status:
+        email_status(low, status_levels)
+        return
+    if low:
+        email_admins(low, status_levels)
 
 
 if __name__ == "__main__":
