@@ -42,6 +42,7 @@ from urllib.request import urlopen
 import click
 from bs4 import BeautifulSoup
 from dotenv import load_dotenv
+from emailer import Email
 
 def resource_path(relative_path):
     """ Get absolute path to resource, works for dev and for PyInstaller """
@@ -53,15 +54,31 @@ def resource_path(relative_path):
 
     return os.path.join(base_path, relative_path)
 
+def mail_results(subject, body):
+    mFrom = os.getenv('MAIL_FROM')
+    mTo = os.getenv('MAIL_TO')
+    m = Email(os.getenv('MAIL_SERVER'))
+    m.setFrom(mFrom)
+    for email in mTo.split(','):
+        m.addRecipient(email)
+    m.addCC(os.getenv('MAIL_FROM'))
+
+    m.setSubject(subject)
+    m.setTextBody("You should not see this text in a MIME aware reader")
+    m.setHtmlBody(body)
+    m.send()
 
 def email_admins(low, status):
     """eamil admins about cartridge status"""
-    mail_server = os.getenv('MAIL_SERVER')
-    mail_from = os.getenv('MAIL_FROM')
-    mail_to = os.getenv('MAIL_TO')
-    admins = mail_to.split(',')
-    for admin in admins:
-        print(admin)
+    subject = "Need to reorder ink for plotter"
+    body = f"""
+        <p>Time to order some more of the following inkjet ink</p>
+        <pre>{low}</pre>
+        <br />
+        <p>These are the overall cartridge levels</p>
+        <pre>{status}</pre>
+    """
+    mail_results(subject, body)
 
 
 def format_list(cartridges):
