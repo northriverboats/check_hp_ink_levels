@@ -8,7 +8,9 @@ a = Analysis(
     ['check_hp_ink_levels.py'],
     pathex=[],
     binaries=[],
-    datas=[],
+    datas=[
+        ('.env','.'),
+    ],
     hiddenimports=[],
     hookspath=[],
     hooksconfig={},
