@@ -45,6 +45,7 @@ from dotenv import load_dotenv
 
 def resource_path(relative_path):
     """ Get absolute path to resource, works for dev and for PyInstaller """
+
     try:
         base_path = sys._MEIPASS  # pylint: disable=protected-access
     except AttributeError:
@@ -53,8 +54,33 @@ def resource_path(relative_path):
     return os.path.join(base_path, relative_path)
 
 
+def email_admins(low, status):
+    """eamil admins about cartridge status"""
+    mail_server = os.getenv('MAIL_SERVER')
+    mail_from = os.getenv('MAIL_FROM')
+    mail_to = os.getenv('MAIL_TO')
+    admins = mail_to.split(',')
+    for admin in admins:
+        print(admin)
+
+
+def format_list(cartridges):
+    """format cartridge list"""
+
+    text  = ""
+    for row in cartridges:
+        line = (f"{row['cartridge']:20}  "
+                f"{'(' + row['letter'] + ')':4}  "
+                f"{row['part']}  "
+                f"{row['level']:>5}  "
+                f"{row['status']}\n")
+        text += line
+    return text
+
+
 def query_plotter():
     """Read plotter status page"""
+
     url = os.getenv('URL')
     threshold = os.getenv('THRESHOLD')
     with urlopen(url) as page:
@@ -76,8 +102,13 @@ def query_plotter():
             t_row[t_h] = t_d.text.replace('\n', '').strip()
         table_data.append(t_row)
 
+    # cartridges status
+    status = format_list(table_data)
+
     # compute cartridges that are low on ink
-    return [row for row in table_data if row['level'][:-2] <= threshold ]
+    low = format_list(
+        [row for row in table_data if row['level'][:-2] <= threshold ])
+    return low, status
 
 
 # pylint: disable=no-value-for-parameter
@@ -86,13 +117,26 @@ def query_plotter():
     help='show debug output do not email')
 def main(debug):
     """check ink levels and email results"""
-    if debug:
-        print('boo')
+
     # load environmental variables
     load_dotenv(dotenv_path=resource_path(".env"))
-    print(query_plotter())
+    low, status = query_plotter()
+    if debug:
+        print("Cartridge Status")
+        print(status)
+    if low and not debug:
+        print("email cartridge list")
+    elif low and debug:
+        print("Cartridges that need to be reordered:")
+        print(low)
+    elif not low and not debug:
+        pass
+    elif not low and debug:
+        print("No cartridges need to be reordered")
+    email_admins(low, status)
+
 
 if __name__ == "__main__":
     main()
 
-# vim: ts=2 sw=2 et
+# vim: ts=4 sw=4 et
