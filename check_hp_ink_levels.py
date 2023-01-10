@@ -62,7 +62,7 @@ def mail_results(subject, body):
     mail.setFrom(m_from)
     for email in m_to.split(','):
         mail.addRecipient(email)
-    mail.addCC(os.getenv('MAIL_FROM'))
+    # mail.addCC(os.getenv('MAIL_FROM'))
 
     mail.setSubject(subject)
     mail.setTextBody("You should not see this text in a MIME aware reader")
