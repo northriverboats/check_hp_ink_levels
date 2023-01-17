@@ -59,6 +59,11 @@ def mail_results(subject, body):
     m_from = os.getenv('MAIL_FROM')
     m_to = os.getenv('MAIL_TO')
     mail = Email(os.getenv('MAIL_SERVER'))
+    mail.setPort(os.gentenv('MAIL_PORT'))
+    mail.setTLS(os.gentenv('MAIL_TLS'))
+    mail.setLogin(os.gentenv('MAIL_LOGIN'))
+    mail.setPassword(os.gentenv('MAIL_PASSWORD'))
+
     mail.setFrom(m_from)
     for email in m_to.split(','):
         mail.addRecipient(email)
