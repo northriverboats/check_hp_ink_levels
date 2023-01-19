@@ -42,7 +42,7 @@ from urllib.request import urlopen
 import click
 from bs4 import BeautifulSoup
 from dotenv import load_dotenv
-from emailer import Email
+from emailer import mail_results
 
 def resource_path(relative_path):
     """ Get absolute path to resource, works for dev and for PyInstaller """
@@ -53,26 +53,6 @@ def resource_path(relative_path):
         base_path = os.path.abspath(".")
 
     return os.path.join(base_path, relative_path)
-
-def mail_results(subject, body):
-    """send actual emails"""
-    m_from = os.getenv('MAIL_FROM')
-    m_to = os.getenv('MAIL_TO')
-    mail = Email(os.getenv('MAIL_SERVER'))
-    mail.setPort(os.gentenv('MAIL_PORT'))
-    mail.setTLS(os.gentenv('MAIL_TLS'))
-    mail.setLogin(os.gentenv('MAIL_LOGIN'))
-    mail.setPassword(os.gentenv('MAIL_PASSWORD'))
-
-    mail.setFrom(m_from)
-    for email in m_to.split(','):
-        mail.addRecipient(email)
-    # mail.addCC(os.getenv('MAIL_FROM'))
-
-    mail.setSubject(subject)
-    mail.setTextBody("You should not see this text in a MIME aware reader")
-    mail.setHtmlBody(body)
-    mail.send()
 
 def email_admins(low, status):
     """eamil admins about cartridge status"""
