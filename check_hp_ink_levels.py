@@ -42,7 +42,8 @@ from urllib.request import urlopen
 import click
 from bs4 import BeautifulSoup
 from dotenv import load_dotenv
-from emailer import mail_results
+from envelopes import Envelope
+from smtplib import SMTPException # allow for silent fail in try exception
 
 def resource_path(relative_path):
     """ Get absolute path to resource, works for dev and for PyInstaller """
@@ -53,6 +54,29 @@ def resource_path(relative_path):
         base_path = os.path.abspath(".")
 
     return os.path.join(base_path, relative_path)
+
+def split_address(email_address):
+    """Return a tuple of (address, name), name may be an empty string
+       Can convert the following forms
+         exaple@example.com
+         <example@exmaple.con>
+         Example <example@example.com>
+         Example<example@example.com>
+    """
+    address = email_address.split('<')
+    if len(address) == 1:
+        return (address[0], '')
+    if address[0]:
+        return (address[1][:-1], address[0].strip())
+    return (address[1][:-1], '')
+
+def mail_results(subject, body):
+    """ Send emial with html formatted body and parameters from env"""
+    envelope = Envelope(
+        from_addr=split_address(os.environ.get('MAIL_FROM')),
+        subject=subject,
+        html_body=body
+    )
 
 def email_admins(low, status):
     """eamil admins about cartridge status"""
