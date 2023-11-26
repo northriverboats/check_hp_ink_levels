@@ -1,7 +1,7 @@
-altgraph==0.17.2
-beautifulsoup4==4.11.1
-click==8.1.2
-Envelopes==0.4
-pyinstaller==5.12.0
-python-dotenv==0.20.0
-soupsieve==2.3.2.post1
+altgraph
+beautifulsoup4
+click
+Envelopes
+pyinstaller
+python-dotenv
+soupsieve
