@@ -128,7 +128,7 @@ def query_plotter():
     soup = BeautifulSoup(html, "html.parser")
 
     # find the correct table
-    table = soup.find('caption', text = 'Cartridges').find_parent('table')
+    table = soup.find('caption', string = 'Cartridges').find_parent('table')
     headers = ['letter', 'cartridge', 'status', 'level', 'capacity',
                'warranty', 'part']
 
